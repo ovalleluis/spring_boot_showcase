@@ -25,7 +25,7 @@ public class PersonRepositoryEventHandler {
 
     private final EntityLinks entityLinks;
 
-    private final Logger log = LoggerFactory.getLogger(this.getClass());
+    private static final Logger log = LoggerFactory.getLogger(PersonRepositoryEventHandler.class);
 
     @Autowired
     public PersonRepositoryEventHandler(SimpMessagingTemplate websocket,
@@ -37,7 +37,7 @@ public class PersonRepositoryEventHandler {
 
     @HandleAfterCreate
     public void newPerson(Person person) {
-        log.info( "Created Person:" + person);
+        log.info( "Created Person ->" + person);
         this.websocket.convertAndSend(
                 MESSAGE_PREFIX + "/users", getPath(person));
         rabbitTemplate.convertAndSend("users", person.getId());
