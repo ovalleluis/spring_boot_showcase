@@ -2,6 +2,7 @@ package showcase;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.core.annotation.HandleAfterCreate;
 import org.springframework.data.rest.core.annotation.RepositoryEventHandler;
@@ -18,6 +19,8 @@ import static showcase.WebSocketConfiguration.MESSAGE_PREFIX;
 @RepositoryEventHandler(Person.class)
 public class PersonRepositoryEventHandler {
 
+    private final RabbitTemplate rabbitTemplate;
+
     private final SimpMessagingTemplate websocket;
 
     private final EntityLinks entityLinks;
@@ -26,16 +29,18 @@ public class PersonRepositoryEventHandler {
 
     @Autowired
     public PersonRepositoryEventHandler(SimpMessagingTemplate websocket,
-                                        EntityLinks entityLinks) {
+                                        EntityLinks entityLinks, RabbitTemplate rabbitTemplate) {
         this.websocket = websocket;
         this.entityLinks = entityLinks;
+        this.rabbitTemplate = rabbitTemplate;
     }
 
     @HandleAfterCreate
     public void newPerson(Person person) {
-        log.info( "Created €€€€€€€$$$$$####> Person:" + person);
+        log.info( "Created Person:" + person);
         this.websocket.convertAndSend(
                 MESSAGE_PREFIX + "/users", getPath(person));
+        rabbitTemplate.convertAndSend("users", person.getId());
     }
 
 
